@@ -1,77 +1,95 @@
 from src.libs.nillion_helpers import NillionHelpers
 from src.models import mUser
 from src.services.solana_client import Solana
+from src.config import settings
+from fastapi import HTTPException
+from src.libs.nillion_helpers import NillionHelpers
 class Nillion(object):
     
     
     @staticmethod
-    async def store(plat_id: str, key: str, value):
+    async def store(plat_id: str, wallet_addr: str, secret_balance: float, secret_volume: float):
+        '''
+            Store value for a specific address using its `plat_id` and a `address`
+        '''
         user = mUser.get_item_with({"plat_id": plat_id})
         if user is None:
-            raise Exception("User not found")
+            raise HTTPException(status_code=404, detail="User not found")
         nillion = NillionHelpers()
-        if isinstance(value, str):
-            store_id = await nillion.store_blob(key=key, value=value)
-        else:
-            store_id = await nillion.store_integer(key=key, value=value)
+        public_key = user.get('public_key', [])
+        address = user.get('address', [])
+        synced = user.get('synced', [])
         
-        # TODO: Store store_id and key(secret_name) to smart contract 
-        print("store_id", store_id)
-        
-        store_balance, store_volume, store_twitter = Solana.get(user.get('public_key'))
-        # Logger
-        print(f"STORE::GET from solana::{plat_id}::{key}::{value}::", store_balance, store_volume, store_twitter)
-        print(f"store_balance: {store_balance}")
-        print(f"store_volume: {store_volume}")
-        print(f"store_twitter: {store_twitter}")
-        
-        if key == 'balance':
-            store_balance = store_id
-        elif key == 'volume_SOL_in_usd':
-            store_volume = store_id
-        elif key == 'twitter_score':
-            store_twitter = store_id
-        else:
-            # Temporary save to database
-            mUser.update(user['_id'], {key: store_id})
-        
-        print(f"STORE::UPDATE from solana::{plat_id}::{key}::{value}::", store_balance, store_volume, store_twitter)
-        Solana.update(plat_id, user.get('public_key'), store_balance, store_volume, store_twitter)
+        try:
+            index = address.index(wallet_addr)
 
-        # return store_id 
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Wallet address not found")
         
+        # 1. Convert string to int 
+        balance = int(secret_balance * settings.NILLION_MULTIPLIER)
+        volume = int(secret_volume * settings.NILLION_MULTIPLIER)
+        
+        # 2. Store balance, volume to nillion
+        balance_id = await nillion.store_integer('secret_balance', balance)
+        volume_id = await nillion.store_integer('secret_volume', volume)
+        twitter_id = await nillion.store_integer('secret_twitter', 0)
+        
+        # 3. Store balance, volume to solana
+        Solana.update(plat_id=plat_id, public_key=public_key[index], store_balance=balance_id, store_volume=volume_id, store_twitter=twitter_id)
+        
+        # 4. Update synced
+        synced.append(wallet_addr)
+        mUser.update(user['_id'], {
+            "synced": synced
+        })
+        
+        print("STORE::SUCCESS")
+    
     
     @staticmethod
-    async def retrieve(plat_id: str, key: str):
-        nillion = NillionHelpers()
+    async def retrieve(plat_id: str, wallet_addr: str):
+        '''
+            Retrive data of a `plat_id`
+        '''
         user = mUser.get_item_with({"plat_id": plat_id})
         if user is None:
-            raise Exception("User not found")
+            raise HTTPException(status_code=404, detail="User not found")
         
-        # TODO: Retrieve store_id from smart contract using plat_id & key (secret_name)
-        store_balance, store_volume, store_twitter = Solana.get(user.get('public_key'))
+        nillion = NillionHelpers()
+        address = user.get('address', [])
         
-        print(f"RETRIEVE::GET from solana::{plat_id}::{key}::", store_balance, store_volume, store_twitter)
-        if key == 'balance':
-            store_id = store_balance
-        elif key == 'volume_SOL_in_usd':
-            store_id = store_volume
-        elif key == 'twitter_score':
-            store_id = store_twitter
-        else:
-            # Temporary get from database
-            store_id = user.get(key, "")
+        # find index of address in address
+        try:
+            index = address.index(wallet_addr)
             
-        if not store_id:
-            return 0
-        value = await nillion.retrieve(store_id, key)
-        return value
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Wallet address not found")
+        
+        # 1. Retrieve balances, volumes from solana
+        store_balance, store_volume, _, _ = Solana.get(plat_id)
+        
+        # 2. Get the balance and volume of the wallet_addr from nillion
+        balance = await nillion.retrieve(store_balance[index], 'secret_balance')
+        volume =  await nillion.retrieve(store_volume[index], 'secret_volume')
+        
+        # 3. Return raw_data
+        balance = balance / settings.NILLION_MULTIPLIER if balance > 0 else 0
+        volume = volume / settings.NILLION_MULTIPLIER if volume > 0 else 0
+
+        
+        return {
+            "secret_balance": balance,
+            "secret_volume": volume,
+        }
+        
         
     @staticmethod
-    async def get_info(plat_id: str, store_balance: str, store_volume: str, store_twitter: str, balance_key = 'balance', volume_key = 'volume_SOL_in_usd', twitter_key = 'twitter_score'):
+    async def get_raw(plat_id: str, store_balance: str, store_volume: str, store_twitter: str, balance_key = 'secret_balance', volume_key = 'secret_volume', twitter_key = 'secret_twitter'):
         user = mUser.get_item_with({"plat_id": plat_id})
         if user is None:
-            raise Exception("User not found")
+            raise HTTPException(status_code=404, detail="User not found")
+        
         nillion = NillionHelpers()
         print(f"FE::GET::INFO::{plat_id}", store_balance, store_volume, store_twitter)
         
@@ -79,18 +97,17 @@ class Nillion(object):
         volume = await nillion.retrieve(store_volume, volume_key)
         twitter = await nillion.retrieve(store_twitter, twitter_key)
         
-        balance_int, volume_int, twitter_int, threshold_whale, threshold_trade, threshold_kol = nillion.format_compute(balance, volume, twitter)
+        # balance_int, volume_int, twitter_int, threshold_whale, threshold_trade, threshold_kol = nillion.format_compute(balance, volume, twitter)
         
-        rank = await nillion.rank(balance_int, volume_int, twitter_int, threshold_whale, threshold_trade, threshold_kol)
+        # rank = await nillion.rank(balance_int, volume_int, twitter_int, threshold_whale, threshold_trade, threshold_kol)
 
-        return {
-            "balance": balance,
-            "volume": volume,
-            "twitter": twitter,
-            "rank": rank
-        }
+        return balance, volume, twitter
+    
     
     @staticmethod
-    async def rank():
+    async def compute_rank_score(store_ids: list):
         nillion = NillionHelpers()
-        return await nillion.rank()
+        party_name, program_id = await nillion.init_rank_program()
+        output = await nillion.compute_rank(party_name, program_id, store_ids)
+        
+        return output

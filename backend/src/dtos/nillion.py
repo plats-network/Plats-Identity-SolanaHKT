@@ -1,12 +1,12 @@
 from pydantic import ConfigDict, BaseModel, Field
-
+from typing import List
 
 class StoreInputDTO(BaseModel):
-    plat_id: str = Field(..., title="Plat ID", description="Plat ID of the user", examples=["odin-hoang", "5678", "91011"])
-    key: str = Field(..., title="Secret Name", description="Name of the secret to store in Nillion", examples=["volume", "balance", "twitter"])
-    value: str | int = Field(..., title="Secret Value", description="Value  to stpre in Nillion. It can be string or integer", examples=[100])
+    plat_id: str = Field(..., title="Plat ID", description="Plat ID of the user", examples=["khaihoang", ])
+    wallet_addr: str = Field(..., title="Wallet Address", description="Wallet address of the user", examples=["GJeggjDKerwUaFpbkL9DnDC2S9C5ez2HEomcb9LjWKJB", ])
+    secret_balance: float = Field(..., title="Secret Balance", description="Secret balance of the user", examples=[3728.52, ])
+    secret_volume: float = Field(..., title="Secret Volume", description="Secret volume of the user", examples=[46720.81, ])
 
 
 class RetrieveInputDTO(BaseModel):
-    plat_id: str = Field(..., title="Plat ID", description="Plat ID of the user", examples=["odin-hoang", "5678", "91011"])
-    key: str = Field(..., title="Secret Name", description="Name of the secret to retrieve from Nillion", examples=["volume", "balance", "twitter"])
+    plat_id: str = Field(..., title="Plat ID", description="Plat ID of the user", examples=["khaihoang", ])

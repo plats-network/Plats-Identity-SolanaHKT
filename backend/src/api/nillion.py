@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from src.dtos import StoreInputDTO, RetrieveInputDTO
 from src.utils import ResponseMsg
 from src.services import Auth
@@ -18,54 +18,60 @@ logger = logging.getLogger(__name__)
 @router.post('/store')
 async def store(storeInput: StoreInputDTO, background_tasks: BackgroundTasks):
     try:
-        key = storeInput.key
-        value = storeInput.value
         plat_id = storeInput.plat_id
+        wallet_addr = storeInput.wallet_addr
+        secret_balance = storeInput.secret_balance
+        secret_volume = storeInput.secret_volume
 
         # in background
-        background_tasks.add_task(Nillion.store, plat_id, key, value)
+        background_tasks.add_task(Nillion.store, plat_id, wallet_addr, secret_balance, secret_volume)
 
         return ResponseMsg.SUCCESS.to_json(msg="Store operation is in progress")
+    
+    except HTTPException as http_exc:
+        raise http_exc
+    
     except Exception as e:
-        logger.error(e)
-        return ResponseMsg.ERROR.to_json(msg=str(e))
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error storing data::{str(e)}")
 
 
 @router.get('/retrieve')
-async def retrieve(plat_id: str, key: str):
+async def retrieve(plat_id: str = "khaihoang", wallet_addr: str = "GJeggjDKerwUaFpbkL9DnDC2S9C5ez2HEomcb9LjWKJB"):
     try:
-        value = await Nillion.retrieve(plat_id, key)
-        return ResponseMsg.SUCCESS.to_json(data={"value": value})
+        data = await Nillion.retrieve(plat_id, wallet_addr)
+        return ResponseMsg.SUCCESS.to_json(data=data)
+    
+    except HTTPException as http_exc:
+        raise http_exc
+    
     except Exception as e:
-        logger.error(e)
-        return ResponseMsg.ERROR.to_json(msg=str(e))
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error storing data::{str(e)}")
     
 
-@router.get("/user")
-def check_register(address: str):
+@router.get("/synced")
+def check_synced(plat_id: str = "khaihoang", wallet_addr: str = "GJeggjDKerwUaFpbkL9DnDC2S9C5ez2HEomcb9LjWKJB"):
     try:
-        data = UserService.check_register(address)
-        if data:
-            return ResponseMsg.SUCCESS.to_json(data=data)
-        return ResponseMsg.NOT_FOUND.to_json(data={})
+        data = UserService.check_synced(plat_id, wallet_addr)
+        return ResponseMsg.SUCCESS.to_json(data={"synced": data})
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
-        return ResponseMsg.ERROR.to_json(msg=str(e))
+        return HTTPException(status_code=500, detail=str(e))
 
 @router.post('/user')
-def update_user(plat_id: str, is_new_user: bool):
+def update_user(wallet_addr: str = "GJeggjDKerwUaFpbkL9DnDC2S9C5ez2HEomcb9LjWKJB"):
     try:
-        UserService.update_user_info(plat_id, {"is_new_user": is_new_user})
-        return ResponseMsg.SUCCESS.to_json(data={})
+        data = UserService.check_register(wallet_addr)
+        return ResponseMsg.SUCCESS.to_json(data={
+            "plat_id": data
+        })
+    
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         return ResponseMsg.ERROR.to_json(msg=str(e))
     
-
-@router.post('/rank')
-async def rank():
-    try:
-        data = await Nillion.rank()
-        return ResponseMsg.SUCCESS.to_json(data=data)
-        
-    except Exception as e:
-        logger.error(e)
-        return ResponseMsg.ERROR.to_json(msg=str(e))

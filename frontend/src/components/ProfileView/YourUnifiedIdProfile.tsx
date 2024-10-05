@@ -1,8 +1,12 @@
+'use client'
 import EthereumIcon from "@/assets/EthereumIcon";
 import { Skeleton } from "@/components/ui/skeleton";
+import { sumBalances } from "@/lib/helper";
 import React from "react";
 
 const YourUnifiedIdProfile = ({ data, isFirstLoad }: { data: any, isFirstLoad: boolean }) => {
+
+
   return (
     <div className="relative w-full ">
       <div
@@ -25,8 +29,8 @@ const YourUnifiedIdProfile = ({ data, isFirstLoad }: { data: any, isFirstLoad: b
                  {
             !data ? (<Skeleton className="h-[35px] w-[160px] bg-slate-400"/>) : (
               <p className="text-[40px] font-bold group-hover:text-[#3AE7E7]">
-             {Number(data?.balance) >= 0
-                ? '$' + Number(data?.balance).toFixed(1)
+             {data?.balances
+                ? '$' + sumBalances(data?.balances).toFixed(1)
                 : "- -"}
             </p>
             )
@@ -39,8 +43,8 @@ const YourUnifiedIdProfile = ({ data, isFirstLoad }: { data: any, isFirstLoad: b
                 {
             !data ? (<Skeleton className="h-[35px] w-[160px] bg-slate-400"/>) : (
               <p className="text-[40px] font-bold group-hover:text-[#3AE7E7]">
-             {Number(data?.volume) >= 0
-                ? '$' + Number(data?.volume).toFixed(1)
+             {data?.volumes
+                ? '$' + sumBalances(data?.volumes).toFixed(1)
                 : "- -"}
             </p>
             )
@@ -53,8 +57,8 @@ const YourUnifiedIdProfile = ({ data, isFirstLoad }: { data: any, isFirstLoad: b
            {
             !data ? (<Skeleton className="h-[35px] w-[160px] bg-slate-400"/>) : (
               <p className="text-[40px] font-bold group-hover:text-[#3AE7E7]">
-             {Number(data?.twitter) >= 0
-                ? Number(data?.twitter).toFixed(1)
+             {Number(data?.twitter_score) >= 0
+                ? Number(data?.twitter_score).toFixed(1)
                 : "- -"}
             </p>
             )
