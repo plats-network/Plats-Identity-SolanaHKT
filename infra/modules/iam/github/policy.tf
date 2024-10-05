@@ -31,8 +31,15 @@ resource "aws_iam_policy" "github_deployment_policy" {
         Effect   = "Allow"
         Resource = ["*"]
         Action = [
-          "ecs:UpdateService"
+          "ecs:UpdateService",
+          "ecs:DescribeTaskDefinition"
         ]
+      },
+      {
+        Action   = ["secretsmanager:GetSecretValue"]
+        Effect   = "Allow"
+        Resource = "*"
+        Sid      = "SecretManager"
       }
     ]
   })
