@@ -16,6 +16,7 @@ class Indexer():
             "method": "getSlot"
         })
         headers = {'Content-Type': 'application/json'}
+        print("RPC URL: ", settings.RPC_URL)
 
         response = requests.request("POST", settings.RPC_URL, headers=headers, data=payload)
 
