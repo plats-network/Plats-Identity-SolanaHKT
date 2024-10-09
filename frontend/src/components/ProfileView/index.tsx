@@ -7,6 +7,7 @@ import Banner from "@/components/ProfileView/Banner";
 import accountApiRequest from "@/apiRequest/account";
 import useSWR from "swr";
 import { clientAccessToken } from "@/lib/http";
+import TourGuideProfile from "@/components/ProfileView/TourGuideProfile";
 
 export default function ProfileView() {
   const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
@@ -21,6 +22,7 @@ export default function ProfileView() {
 
   return (
     <div className="min-h-[100vh] w-full flex flex-col items-center  gap-10 text-white  ">
+      <TourGuideProfile/>
       {/* Banner */}
       <Banner
         isFirstLoad={isFirstLoad}
@@ -35,7 +37,7 @@ export default function ProfileView() {
             isFirstLoad={isFirstLoad}
           />
 
-          <div className="flex flex-col gap-8 lg:max-w-[706px] w-full">
+          <div className="flex flex-col gap-8 lg:max-w-[706px] w-full register-button">
             <YourUnifiedIdProfile
               data={data?.payload?.data?.user}
               isFirstLoad={isFirstLoad}

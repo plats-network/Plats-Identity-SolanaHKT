@@ -100,6 +100,7 @@ const ConnectAccountModal = ({
       <button
         onClick={() => setIsOpen(true)}
         className="bg-gradient-to-r from-[#8737E9] to-[#3AE7E7]  rounded-xl w-full py-4 text-base font-bold text-center text-white cursor-pointer flex items-center justify-center gap-2"
+      id="step-1"
       >
         <AddIcon />
         <p> Add New Account</p>

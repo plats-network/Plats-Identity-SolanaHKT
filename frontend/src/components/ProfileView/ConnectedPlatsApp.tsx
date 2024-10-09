@@ -138,17 +138,18 @@ const ConnectedPlatsApp = ({ platId }: { platId: string }) => {
             data?.payload?.data?.plat_apps.map((plat: any, index: number) => (
               <div
                 key={index}
-                className="group sm:max-w-[251px] w-full flex flex-col px-3 justify-center text-center   bg-[#1A1A36] hover:bg-[#060625] cursor-pointer rounded-[12px]"
+                className="group sm:max-w-[251px] w-full flex flex-col px-3 justify-center  bg-[#1A1A36] hover:bg-[#060625] cursor-pointer rounded-[12px]"
+              id="step-3"
               >
                 <a href={plat.app_url} target="_blank" className=" py-[22px]">
-                  <div className="flex items-center  gap-3">
+                  <div className="flex items-center  gap-2">
                     <PlatsAppLogo />
-                    <p className="text-[17px] text-[#B7B4BB] group-hover:bg-gradient-to-r from-[#3AE7E7] to-[#8737E9] group-hover:text-transparent group-hover:bg-clip-text">
-                      {plat.app_name || `Plats App 0${index + 1}`}
+                    <p className="text-sm text-nowrap text-[#B7B4BB] group-hover:bg-gradient-to-r from-[#3AE7E7] to-[#8737E9] group-hover:text-transparent group-hover:bg-clip-text">
+                      {`plats-app.vercel.app`}
                     </p>
                   </div>
                 </a>
-                <div className=" flex gap-3 w-full justify-end items-center pb-3">
+                <div className=" flex gap-3 w-full justify-end items-center pb-3 step-4">
                   <ActivePlatAppButton
                     appId={plat.app_id}
                     handleActivePlatApp={handleActivePlatApp}
@@ -158,7 +159,7 @@ const ConnectedPlatsApp = ({ platId }: { platId: string }) => {
               </div>
             ))
           ) : (
-            <div className="w-full flex flex-col items-center justify-center text-center gap-3 my-[27px]">
+            <div className="w-full flex flex-col items-center justify-center text-center gap-3 my-3">
               <p className="text-[40px] font-bold">- -</p>
               <p className="text-[17px] text-[#B172FF]">
                 You haven't connected to any accounts yet

@@ -107,7 +107,7 @@ const ConnectedAccount = ({
             }
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center text-center gap-3 h-[260px]">
+          <div className="flex flex-col items-center justify-center text-center gap-3 h-[240px]">
             <p className="text-[40px] font-bold">- -</p>
             <p className="text-[17px] text-[#B172FF]">
               You haven't connected to any accounts yet
