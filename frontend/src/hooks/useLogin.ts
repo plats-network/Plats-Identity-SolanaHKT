@@ -13,7 +13,7 @@ const useLogin = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [authenToken, setAuthenToken] = useState<string>("");
-  const [isConnect, setIsConnect] = useState<boolean>(false);
+  const [isConnect, setIsConnect] = useState<boolean>(true);
   const [currentPublicKey, setCurrentPublicKey] = useState<any>(null);
 
 

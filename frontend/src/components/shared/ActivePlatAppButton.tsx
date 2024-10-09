@@ -22,7 +22,9 @@ const ActivePlatAppButton = ({ appId, handleActivePlatApp, handleUnActivePlatApp
   
     return (
       <>
-        <Switch checked={isChecked} onClick={() => handleSwitchChecked(!isChecked)} />
+        <Switch 
+        id='step-2'
+        checked={isChecked} onClick={() => handleSwitchChecked(!isChecked)} />
       </>
     );
   };
